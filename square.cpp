@@ -2,118 +2,208 @@
 #include <math.h>
 
 enum RootsNumber {
+
     ZERO_SOLUTIONS,
     ONE_SOLUTION,
     TWO_SOLUTIONS,
     INFINITY_SOLUTIONS,
 };
 
-enum RootsNumber solve_square(double, double, double, double*, double*);
-void output_solutions(double, double, enum RootsNumber);
-void input_coef(double *a, double *b, double *c);
-enum RootsNumber lin_eq(double b,double c, double *x1);
+struct SquareEqData{
+        double a,b,c,x1,x2;
+        enum RootsNumber nroots;
+        };
+
+struct LinEqData{
+        double b,c,x1;
+        enum RootsNumber nroots;
+        };
+
+void solve_square(struct SquareEqData *);
+void output_solutions(struct SquareEqData *);
+void input_coeffs(double *, double *, double *);
+void lin_eq(struct LinEqData *);
 bool is_zero(double num);
 void clear_buffer();
+int run_tests();
+bool is_equal(double first, double second);
 
+
+
+//__________________________________________________________________________________________________________________________________
 
 int main()
 {
     printf("enter a,b,c \n");
 
-    double a = 0, b = 0, c = 0, x1 = 0, x2 = 0;
-    input_coef(&a, &b, &c);
+    struct SquareEqData variables = {};
 
-    RootsNumber nroots = solve_square(a, b, c, &x1, &x2);
+    input_coeffs(&(variables.a), &(variables.b), &(variables.c));
 
-    output_solutions(x1, x2, nroots);
+    solve_square(&variables);
+
+    output_solutions(&variables);
+
+    run_tests();
+
 }
+
+//____________________________________________________________________________________________________________________________________
 
 bool is_zero(double num)
 {
-    if (fabs(num) < 1e-8)
+    if (fabs(num) < 1e-8)      // const EPSILON
     {
         return true;
     }
     return false;
 }
 
-enum RootsNumber solve_square(double a, double b, double c, double *x1, double *x2)
+//____________________________________________________________________________________________________________________________________
+
+void solve_square(struct SquareEqData* variables)
 {
+    double a = (*variables).a;
+    double b = (*variables).b;
+    double c = (*variables).c;
+
     double d = b*b-4*a*c;
     if (!is_zero(a))
     {
         if (d < 0)
         {
-            return ZERO_SOLUTIONS;
+            (*variables).nroots = ZERO_SOLUTIONS;
         }
         else if(is_zero(d))
         {
-            *x1 = -b/(2*a);
-            return ONE_SOLUTION;
+            (*variables).x1 = -b/(2*a);
+            (*variables).nroots = ONE_SOLUTION;
         }
         else
         {
-            *x1= (-b + sqrt(d))/(2*a);
-            *x2= (-b - sqrt(d))/(2*a);
-            return TWO_SOLUTIONS;
+            (*variables).x1= (-b + sqrt(d))/(2*a);
+            (*variables).x2= (-b - sqrt(d))/(2*a);
+            (*variables).nroots = TWO_SOLUTIONS;
         }
     }
     else
     {
-        return lin_eq(a, b, x1);
+        struct LinEqData linear = {.b = b, .c = c, .x1 = 0, .nroots = ZERO_SOLUTIONS};
+        lin_eq(&linear);
+        (*variables).x1 = linear.x1;
+        (*variables).nroots = linear.nroots;
     }
 }
 
-void output_solutions(double x1, double x2, enum RootsNumber nroots) {
-    switch (nroots)
+//____________________________________________________________________________________________________________________________________
+
+void output_solutions(struct SquareEqData *variables)
+{
+    switch ((*variables).nroots)
     {
         case ZERO_SOLUTIONS: printf ("No roots\n");
                 break;
 
-        case ONE_SOLUTION: printf ("amount of roots %d  x = %lg  \n", nroots, x1);
+        case ONE_SOLUTION: printf ("amount of roots %d  x = %lg  \n", (*variables).nroots, (*variables).x1);
                 break;
 
-        case TWO_SOLUTIONS: printf ("amount of roots %d  x1 = %lg x2 = %lg \n", nroots, x1, x2);
+        case TWO_SOLUTIONS: printf ("amount of roots %d  x1 = %lg x2 = %lg \n", (*variables).nroots, (*variables).x1, (*variables).x2);
                 break;
 
         case INFINITY_SOLUTIONS: printf("inf amount of solutions ");
+                break;
 
         default: printf ("the code sucks!");
         }
 
 }
 
-void input_coef(double *a, double *b, double *c)
+//____________________________________________________________________________________________________________________________________
+
+void input_coeffs(double* a, double* b, double* c)
 {
     while (scanf ("%lf %lf %lf", a, b, c) != 3)
     {
         printf("incorrect input \n");
         printf("try again\n");
-        clear_buffer();// clear_buffer
+        clear_buffer();
     }
 }
 
-enum RootsNumber lin_eq(double b,double c, double *x1)
+//____________________________________________________________________________________________________________________________________
+
+void lin_eq(struct LinEqData *linear)
 {
+    double b = (*linear).b;
+    double c = (*linear).c;
     if (is_zero(b))
     {
         if (is_zero(c))
         {
-            return INFINITY_SOLUTIONS;
+            (*linear).nroots = INFINITY_SOLUTIONS;
         }
         else
         {
-            return ZERO_SOLUTIONS;
+            (*linear).nroots = ZERO_SOLUTIONS;
         }
     }
     else
     {
-        *x1 = -c/b;
-        return ONE_SOLUTION;
+        (*linear).x1 = -c/b;
+        (*linear).nroots = ONE_SOLUTION;
     }
 }
+
+//____________________________________________________________________________________________________________________________________
 
 void clear_buffer()
 {
     while (getchar() != '\n') {}
 }
+
+//____________________________________________________________________________________________________________________________________
+
+bool is_equal(double first, double second)
+{
+    if (fabs(first - second) < 1e-8)       // const
+    {
+        return true;
+    }
+    return false;
+}
+
+//____________________________________________________________________________________________________________________________________
+
+int run_tests()
+{
+    SquareEqData tests[10] = {};
+    tests[0] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};    // нормальный случай
+    tests[1] = {0, 0, 0, 0, 0, INFINITY_SOLUTIONS}; // бесконечное колчво корней
+    tests[2] = {0, 0, 7.7, 0, 0, ZERO_SOLUTIONS};   // нет корней
+    tests[3] = {0, 3.4, 1.7, -2, -2, ONE_SOLUTION}; // линейное уравнение
+    tests[4] = {1, -2, 1, 1, 1, ONE_SOLUTION};      // d=0
+    tests[5] = {2, 4.12, 4, 0, -0, ZERO_SOLUTIONS}; // d<0
+    tests[6] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};    //
+    tests[7] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
+    tests[8] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
+    tests[9] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
+    for (int i = 0; i <= 9; i++)
+    {
+        struct SquareEqData current = {tests[i].a, tests[i].b, tests[i].c, tests[i].x1, tests[i].x2, tests[i].nroots};
+        solve_square(&current);
+        if( !is_equal(tests[i].x1, current.x1) || !is_equal(tests[i].x2, current.x2) || !is_equal(tests[i].nroots, current.nroots))
+        {
+            printf("\nerror test number %d, nroots = %d x1 = %lf, x2 = %lf\n"
+                   "correct: nrootscor = %d, x1cor = %lf, x2cor = %lf\n", i + 1,
+                    current.nroots, current.x1, current.x2,
+                    tests[i].nroots, tests[i].x1, tests[i].x2);
+        }
+        else
+        {
+            printf("\napproved!\n");
+        }
+    }
+    return 0;
+}
+
+//____________________________________________________________________________________________________________________________________
