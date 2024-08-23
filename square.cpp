@@ -1,23 +1,24 @@
 #include <stdio.h>
 #include <math.h>
 
-enum RootsNumber {
+#define TESTS // (добавишь это в мейне) сделай через условную компил€цию, чтобы если TESTS было задефайнено, запускались тесты, а иначе запускаетс€ обычна€ прога (когда вводишь коэффициенты и тд)
 
+enum RootsNumber {
     ZERO_SOLUTIONS,
     ONE_SOLUTION,
     TWO_SOLUTIONS,
     INFINITY_SOLUTIONS,
 };
 
-struct SquareEqData{
-        double a,b,c,x1,x2;
-        enum RootsNumber nroots;
-        };
+struct SquareEqData {
+    double a,b,c,x1,x2;
+    enum RootsNumber nroots;
+};
 
-struct LinEqData{
-        double b,c,x1;
-        enum RootsNumber nroots;
-        };
+struct LinEqData {
+    double b,c,x1;
+    enum RootsNumber nroots;
+};
 
 void solve_square(struct SquareEqData *);
 void output_solutions(struct SquareEqData *);
@@ -36,7 +37,7 @@ int main()
 {
     printf("enter a,b,c \n");
 
-    struct SquareEqData variables = {};
+    struct SquareEqData variables = {0, 0, 0, 0, 0, ZERO_SOLUTIONS};
 
     input_coeffs(&(variables.a), &(variables.b), &(variables.c));
 
@@ -176,6 +177,11 @@ bool is_equal(double first, double second)
 
 int run_tests()
 {
+//    SquareEqData tests[] = {
+//        {1, 5, 4, -1, -4, TWO_SOLUTIONS},
+//        {0, 0, 0, 0, 0, INFINITY_SOLUTIONS},
+//
+//    };
     SquareEqData tests[10] = {};
     tests[0] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};    // нормальный случай
     tests[1] = {0, 0, 0, 0, 0, INFINITY_SOLUTIONS}; // бесконечное колчво корней
@@ -187,9 +193,10 @@ int run_tests()
     tests[7] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
     tests[8] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
     tests[9] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
-    for (int i = 0; i <= 9; i++)
+    // 10 is magic const, remember what I told you about sizeof
+    for (int i = 0; i < 10; i++)
     {
-        struct SquareEqData current = {tests[i].a, tests[i].b, tests[i].c, tests[i].x1, tests[i].x2, tests[i].nroots};
+        struct SquareEqData current = {tests[i].a, tests[i].b, tests[i].c, tests[i].x1, tests[i].x2, tests[i].nroots}; // initialize by zero
         solve_square(&current);
         if( !is_equal(tests[i].x1, current.x1) || !is_equal(tests[i].x2, current.x2) || !is_equal(tests[i].nroots, current.nroots))
         {
@@ -201,7 +208,7 @@ int run_tests()
         else
         {
             printf("\napproved!\n");
-        }
+        }     // to function
     }
     return 0;
 }
