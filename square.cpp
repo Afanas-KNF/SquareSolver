@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#define TESTS // (добавишь это в мейне) сделай через условную компиляцию, чтобы если TESTS было задефайнено, запускались тесты, а иначе запускается обычная прога (когда вводишь коэффициенты и тд)
+#define TESTS
+
 
 enum RootsNumber {
     ZERO_SOLUTIONS,
@@ -20,6 +21,8 @@ struct LinEqData {
     enum RootsNumber nroots;
 };
 
+const double EPSILON = 1e-8;
+
 void solve_square(struct SquareEqData *);
 void output_solutions(struct SquareEqData *);
 void input_coeffs(double *, double *, double *);
@@ -28,13 +31,15 @@ bool is_zero(double num);
 void clear_buffer();
 int run_tests();
 bool is_equal(double first, double second);
-
-
+void run_test(SquareEqData &current, SquareEqData &answer);
 
 //__________________________________________________________________________________________________________________________________
 
 int main()
 {
+    #ifdef TESTS
+    run_tests();
+    #else
     printf("enter a,b,c \n");
 
     struct SquareEqData variables = {0, 0, 0, 0, 0, ZERO_SOLUTIONS};
@@ -44,16 +49,14 @@ int main()
     solve_square(&variables);
 
     output_solutions(&variables);
-
-    run_tests();
-
+    #endif
 }
 
 //____________________________________________________________________________________________________________________________________
 
 bool is_zero(double num)
 {
-    if (fabs(num) < 1e-8)      // const EPSILON
+    if (fabs(num) < EPSILON)
     {
         return true;
     }
@@ -121,7 +124,7 @@ void output_solutions(struct SquareEqData *variables)
 
 //____________________________________________________________________________________________________________________________________
 
-void input_coeffs(double* a, double* b, double* c)
+void input_coeffs(double* a, double* b, double* c)   // TODO sprosit u VITALA kak ispravit ))))))))))))))))))))))
 {
     while (scanf ("%lf %lf %lf", a, b, c) != 3)
     {
@@ -166,7 +169,7 @@ void clear_buffer()
 
 bool is_equal(double first, double second)
 {
-    if (fabs(first - second) < 1e-8)       // const
+    if (fabs(first - second) < EPSILON)
     {
         return true;
     }
@@ -177,40 +180,42 @@ bool is_equal(double first, double second)
 
 int run_tests()
 {
-//    SquareEqData tests[] = {
-//        {1, 5, 4, -1, -4, TWO_SOLUTIONS},
-//        {0, 0, 0, 0, 0, INFINITY_SOLUTIONS},
-//
-//    };
-    SquareEqData tests[10] = {};
-    tests[0] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};    // нормальный случай
-    tests[1] = {0, 0, 0, 0, 0, INFINITY_SOLUTIONS}; // бесконечное колчво корней
-    tests[2] = {0, 0, 7.7, 0, 0, ZERO_SOLUTIONS};   // нет корней
-    tests[3] = {0, 3.4, 1.7, -2, -2, ONE_SOLUTION}; // линейное уравнение
-    tests[4] = {1, -2, 1, 1, 1, ONE_SOLUTION};      // d=0
-    tests[5] = {2, 4.12, 4, 0, -0, ZERO_SOLUTIONS}; // d<0
-    tests[6] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};    //
-    tests[7] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
-    tests[8] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
-    tests[9] = {1, 5, 4, -1, -4, TWO_SOLUTIONS};
-    // 10 is magic const, remember what I told you about sizeof
-    for (int i = 0; i < 10; i++)
+    SquareEqData tests[] = {
+        {1, 5, 4, -1, -4, TWO_SOLUTIONS},   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        {0, 0, 0, 0, 0, INFINITY_SOLUTIONS},// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        {0, 0, 7.7, 0, 0, ZERO_SOLUTIONS},  // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        {0, 3.4, 1.7, -0.5, 0, ONE_SOLUTION},// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        {1, -2, 1, 1, 0, ONE_SOLUTION},     // d=0
+        {2, 4.12, 4, 0, -0, ZERO_SOLUTIONS},// d<0
+        {1, 5, 4, -1, -4, TWO_SOLUTIONS},   // how to change so that if one solutions x2 != 0
+        {1, 5, 4, -1, -4, TWO_SOLUTIONS},
+        {1, 5, 4, -1, -4, TWO_SOLUTIONS},
+        {1, 5, 4, -1, -4, TWO_SOLUTIONS}
+    };
+    int numtest = sizeof(tests) / sizeof(SquareEqData);
+    for (int i = 0; i < numtest ; i++)
     {
-        struct SquareEqData current = {tests[i].a, tests[i].b, tests[i].c, tests[i].x1, tests[i].x2, tests[i].nroots}; // initialize by zero
-        solve_square(&current);
-        if( !is_equal(tests[i].x1, current.x1) || !is_equal(tests[i].x2, current.x2) || !is_equal(tests[i].nroots, current.nroots))
-        {
-            printf("\nerror test number %d, nroots = %d x1 = %lf, x2 = %lf\n"
-                   "correct: nrootscor = %d, x1cor = %lf, x2cor = %lf\n", i + 1,
-                    current.nroots, current.x1, current.x2,
-                    tests[i].nroots, tests[i].x1, tests[i].x2);
-        }
-        else
-        {
-            printf("\napproved!\n");
-        }     // to function
+        struct SquareEqData current = {tests[i].a, tests[i].b, tests[i].c, 0, 0, ZERO_SOLUTIONS};
+        printf("\ntest number %d\n", i + 1);
+        run_test(current, tests[i]);
     }
     return 0;
 }
 
 //____________________________________________________________________________________________________________________________________
+
+void run_test(SquareEqData &current, SquareEqData &answer)
+{
+    solve_square(&current);
+    if( !is_equal(answer.x1, current.x1) || !is_equal(answer.x2, current.x2) || !is_equal(answer.nroots, current.nroots))
+    {
+        printf("\nerror nroots = %d x1 = %lf, x2 = %lf\n"
+                "correct: nrootscor = %d, x1cor = %lf, x2cor = %lf\n",
+                current.nroots, current.x1, current.x2,
+                answer.nroots, answer.x1, answer.x2);
+    }
+    else
+    {
+        printf("approved!\n");
+    }     // to function_________________________________________________________________________________________________________________________________
+}
