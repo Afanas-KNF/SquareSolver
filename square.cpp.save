@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <math.h>
-
-#define TESTS
+//#define TESTS
 
 
 enum RootsNumber {
     ZERO_SOLUTIONS,
-    ONE_SOLUTION,
+    ONE_SOLUTION,                                   
     TWO_SOLUTIONS,
     INFINITY_SOLUTIONS,
 };
@@ -28,7 +27,7 @@ void output_solutions(struct SquareEqData *);
 void input_coeffs(double *, double *, double *);
 void lin_eq(struct LinEqData *);
 bool is_zero(double num);
-void clear_buffer();
+bool clear_buffer();
 int run_tests();
 bool is_equal(double first, double second);
 void run_test(SquareEqData &current, SquareEqData &answer);
@@ -124,13 +123,22 @@ void output_solutions(struct SquareEqData *variables)
 
 //____________________________________________________________________________________________________________________________________
 
-void input_coeffs(double* a, double* b, double* c)   // TODO sprosit u VITALA kak ispravit ))))))))))))))))))))))
+void input_coeffs(double* a, double* b, double* c)
 {
-    while (scanf ("%lf %lf %lf", a, b, c) != 3)
+    int n_doubles = 0;
+    bool is_buffer_clean = true;
+    while (true)
     {
-        printf("incorrect input \n");
-        printf("try again\n");
-        clear_buffer();
+        n_doubles = scanf("%lf %lf %lf", a, b, c);
+        is_buffer_clean = clear_buffer();
+        if (n_doubles != 3 || is_buffer_clean == true)
+        {
+            printf("error\nwrong input\ntry again\n");
+        } 
+        else 
+        {
+            break;
+        }
     }
 }
 
@@ -160,9 +168,14 @@ void lin_eq(struct LinEqData *linear)
 
 //____________________________________________________________________________________________________________________________________
 
-void clear_buffer()
+bool clear_buffer()
 {
+    if (getchar() == '\n')
+        return false;
+
     while (getchar() != '\n') {}
+
+    return true;
 }
 
 //____________________________________________________________________________________________________________________________________
